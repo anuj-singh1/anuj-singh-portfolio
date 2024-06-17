@@ -10945,8 +10945,9 @@ p.lead {
 }
 
 section.resume-section {
-  display: flex;
-  align-items: center;
+  /*display: flex;*/
+  justify-content: center;
+  align-content: center;
   padding-left: 1rem;
   padding-right: 1rem;
   padding-top: 5rem;
@@ -10954,6 +10955,7 @@ section.resume-section {
   max-width: 75rem;
 }
 section.resume-section .resume-section-content {
+  align-items: center;
   width: 100%;
 }
 
@@ -11005,6 +11007,12 @@ section.resume-section .resume-section-content {
 
 .page-section {
   padding: 6rem 0;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  justify-content: center;
+  align-content: center;
 }
 .page-section .page-section-heading {
   font-size: 2.25rem;
