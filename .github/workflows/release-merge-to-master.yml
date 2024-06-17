@@ -1,0 +1,127 @@
+name: RELEASE
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - 'master'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  pr_source_branch: ${{github.event.pull_request.head.ref}}
+
+jobs:
+  set-release-version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout-code
+        name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: 'master'
+
+      - id: set-additional-env
+        name: Set additional env variables
+        run: |
+          echo pr_merged_by_email=$(git log -n 1 --pretty=format:%ae) >> "$GITHUB_ENV"
+          echo pr_merged_by_user=$(git log -n 1 --pretty=format:%an) >> "$GITHUB_ENV"
+          echo base_head_commit=$(git log -n 1 --pretty=format:%s) >> "$GITHUB_ENV"
+
+      - id: read-release-version
+        name: Read release branch version
+        run: |
+          echo release_version=$(echo "${{env.pr_source_branch}}" | sed -nE 's/^release-([0-9.]+).*$/\1/p') >> "$GITHUB_OUTPUT"
+
+      - id: create-tag
+        name: Create Tag
+        if: steps.read-release-version.outputs.release_version != ''
+        run: |
+          echo "Creating a new tag : ${{steps.read-release-version.outputs.release_version}} !"
+          GIT_COMMITTER_NAME="${{env.pr_merged_by_user}}" GIT_COMMITTER_EMAIL="${{env.pr_merged_by_email}}" git tag -a v${{steps.read-release-version.outputs.release_version}} -m "${{env.base_head_commit}}"
+          git push --tags
+          echo "Tag Created !"
+
+      - id: build-changelog
+        name: Build change log
+        uses: mikepenz/release-changelog-builder-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          configuration: ".github/workflows/release-note-configuration.json"
+          ignorePreReleases: "false"
+          toTag: v${{steps.read-release-version.outputs.release_version}}
+          failOnError: "true"
+
+      - id: log-release-meta
+        name: Log release metadata
+        run: |
+          echo "Change log create from ${{steps.build-changelog.outputs.fromTag}} to ${{steps.build-changelog.outputs.toTag}} !"
+          echo "Change log : ${{steps.build-changelog.outputs.changelog}}"
+
+      - id: create-release
+        name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{steps.read-release-version.outputs.release_version}}
+          release_name: v${{steps.read-release-version.outputs.release_version}}
+          body: ${{steps.build-changelog.outputs.changelog}}
+          draft: false
+          prerelease: false
+
+      - id: send-slack-notification
+        name: Send Slack notification
+        if: ${{ success() }}
+        uses: slackapi/slack-github-action@v1.21.0
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#36a64f",
+                  "blocks": [
+                    {
+                      "type": "header",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New Release Out !",
+                        "emoji": true
+                      }
+                    },
+                    {
+                      "type": "divider"
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Repository:* ${{steps.build-changelog.outputs.repo}}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Released By:* ${{env.pr_merged_by_user}}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "*Version:* <https://github.com/zeotap/${{steps.build-changelog.outputs.repo}}/releases/tag/v${{steps.read-release-version.outputs.release_version}}|v${{steps.read-release-version.outputs.release_version}}>"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/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'
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
