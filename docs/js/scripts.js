@@ -16,7 +16,8 @@ window.addEventListener('DOMContentLoaded', event => {
             target: '#sideNav',
             rootMargin: '0px 0px -40%',
         });
-    };
+    }
+    ;
 
     // Collapse responsive navbar when toggler is visible
     const navbarToggler = document.body.querySelector('.navbar-toggler');
@@ -33,13 +34,13 @@ window.addEventListener('DOMContentLoaded', event => {
 
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('contactForm');
     const submitSuccessMessage = document.getElementById('submitSuccessMessage');
     const submitErrorMessage = document.getElementById('submitErrorMessage');
 
     // Handle form submission
-    form.addEventListener('submit', function(event) {
+    form.addEventListener('submit', function (event) {
         event.preventDefault();
 
         // Check if the form is valid
@@ -56,20 +57,60 @@ document.addEventListener('DOMContentLoaded', function() {
         const message = document.getElementById('message').value;
 
         const data = {
-            name: name,
-            email: email,
-            phone: phone,
-            message: message
-        };
+            attachments: [
+                {
+                    color: "#36a64f",
+                    blocks: [
+                        {
+                            type: "header",
+                            text: {
+                                type: "plain_text",
+                                text: "New query!",
+                                emoji: true
+                            }
+                        },
+                        {
+                            type: "divider"
+                        },
+                        {
+                            type: "context",
+                            elements: [
+                                {
+                                    type: "mrkdwn",
+                                    text: "*Name:* " + name
+                                },
+                                {
+                                    type: "mrkdwn",
+                                    text: "*Phone:* " + phone
+                                },
+                                {
+                                    type: "mrkdwn",
+                                    text: "*Email:* " + email
+                                }
+                            ]
+                        },
+                        {
+                            type: "context",
+                            elements: [
+                                {
+                                    type: "mrkdwn",
+                                    text: "*Message:* " + message
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
 
-        const apiUrl = "https://72973nsp05.execute-api.ap-south-1.amazonaws.com/default/portfolio-contact"
+        const apiUrl = "https://hooks.slack.com/services/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"
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
         const requestOptions = {
             mode: "cors",
             method: "POST",
-            headers: myHeaders,
+            // headers: myHeaders,
             body: JSON.stringify(data),
         };
 
@@ -78,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.json();
+                return response.text();
             })
             .then(data => {
                 // Show success message
@@ -97,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset validation on form input change
     const formControls = form.querySelectorAll('.form-control');
     formControls.forEach(input => {
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
             if (input.checkValidity()) {
                 input.classList.remove('is-invalid');
             } else {
