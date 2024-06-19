@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
         }
 
-        const apiUrl = "https://hooks.slack.com/services/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"
+        const apiUrl = "https://hooks.slack.com/services/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"
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
