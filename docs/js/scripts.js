@@ -57,60 +57,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const message = document.getElementById('message').value;
 
         const data = {
-            attachments: [
-                {
-                    color: "#36a64f",
-                    blocks: [
-                        {
-                            type: "header",
-                            text: {
-                                type: "plain_text",
-                                text: "New query!",
-                                emoji: true
-                            }
-                        },
-                        {
-                            type: "divider"
-                        },
-                        {
-                            type: "context",
-                            elements: [
-                                {
-                                    type: "mrkdwn",
-                                    text: "*Name:* " + name
-                                },
-                                {
-                                    type: "mrkdwn",
-                                    text: "*Phone:* " + phone
-                                },
-                                {
-                                    type: "mrkdwn",
-                                    text: "*Email:* " + email
-                                }
-                            ]
-                        },
-                        {
-                            type: "context",
-                            elements: [
-                                {
-                                    type: "mrkdwn",
-                                    text: "*Message:* " + message
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
+            name: name,
+            email: email,
+            phone: phone,
+            message: message
+        };
+        const apiUrl = "https://p5oos2anbscdnynaeqwmdk25ji0kgjtt.lambda-url.ap-south-1.on.aws/"
 
-        const apiUrl = "https://hooks.slack.com/services/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"
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
         const requestOptions = {
-            mode: "cors",
+            mode: 'cors',
             method: "POST",
-            // headers: myHeaders,
+            headers: myHeaders,
             body: JSON.stringify(data),
         };
 
